@@ -1,0 +1,8 @@
+{
+  "header": "",
+  "footer": "",
+  "bulleted_list": "",
+  "chapter": "CHAPTER [0-9].*",
+  "section": "",
+  "allnumbers": "[0-9]*.?+"
+}
