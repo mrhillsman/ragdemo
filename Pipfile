@@ -24,6 +24,7 @@ ninja = "*"
 bitsandbytes = "*"
 streamlit = "*"
 chainlit = "*"
+matplotlib = "*"
 
 [dev-packages]
 

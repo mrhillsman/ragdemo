@@ -1,5 +1,6 @@
 import fitz
 import os
+import random
 import re
 import json
 import pandas as pd
@@ -13,12 +14,14 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 # Number of sentences to chunk together
 num_sentence_chunk_size = 10
+# Skip the front matter of each PDF that contains irrelevant data
 page_skip_mappings = json.load(open("pdf_page_skip_mappings.json"))
+# Regular expressions to use for additional cleaning of PDF content
 regex_mappings = json.load(open("pdf_regex_mappings.json"))
 
 
+# Perform any general text formatting here
 def general_formatter(text: str) -> str:
-    # Perform any general text formatting here
     # Remove new lines to squash text into sequential sentences
     formatted_text = re.sub(r'([A-Z]+\s)*([0-9]\.)([0-9]\.)?', '', text)
     formatted_text = re.sub(r'([A-Z]{4,}\s)', '', formatted_text)
@@ -75,6 +78,13 @@ print("Opening and processing PDFs...")
 pdfs_pages_and_texts = open_and_read_pdfs(pdf_dir, pdf_list)
 pdfs = list(pdfs_pages_and_texts.keys())
 
+# Print sample for quick review
+random_pdf = random.sample(pdfs, k=1)
+random_pdfs_pages_and_texts = pdfs_pages_and_texts[random_pdf[0]]
+random_pdf_page_and_text = enumerate(random.sample(random_pdfs_pages_and_texts, k=5))
+for random_page_and_text in random_pdf_page_and_text:
+    print(random_page_and_text[1])
+    print("\n")
 
 # Use spaCy's sentencizer for sentence boundary detection
 # https://spacy.io/api/sentencizer
@@ -127,16 +137,23 @@ for pdf in pdfs:
             pages_and_chunks.append(chunk_dict)
 
 
+# Print sample for quick review
+random_pages_and_chunks = enumerate(random.sample(pages_and_chunks, k=10))
+for page_and_chunk in random_pages_and_chunks:
+    print(page_and_chunk)
+    print("\n")
+
 # Create a Pandas DataFrame from the pages_and_chunks list of dictionaries
 # This will allow us to easily filter and manipulate the data
 df = pd.DataFrame(pages_and_chunks)
-min_token_length = 30
 
+# Set a minimum token length to remove chunks that are too small
+# for providing significant embedding
+min_token_length = 30
 # Sample 5 sentence chunks that are less than the min_token_length to determine if they are viable candidates
 # for embedding and/or ensure our min_token_length is not causing us to exclude viable candidates for embedding
-# for row in df[df["chunk_token_count"] <= min_token_length].sample(5).iterrows():
-#     print(f'Chunk token count: {row[1]["chunk_token_count"]} | Text: {row[1]["sentence_chunk"]}')
-
+for row in df[df["chunk_token_count"] <= min_token_length].sample(5).iterrows():
+    print(f'Chunk token count: {row[1]["chunk_token_count"]} | Text: {row[1]["sentence_chunk"]}')
 # Filter out sentence chunks that are less than the min_token_length
 pages_and_chunks_over_min_token_len = df[df["chunk_token_count"] > min_token_length].to_dict(orient="records")
 print("Finished processing PDFs...")
@@ -156,9 +173,13 @@ for idx, content in enumerate(pages_and_chunks_over_min_token_len):
 # Print total number of embeddings created
 print(f"Total number of embeddings created: {len(embeddings)}")
 
+# Print sample for quick review
+print(random.sample(pages_and_chunks_over_min_token_len, k=3))
+
 print("Save pages and chunks to disk...")
 # Save the pages_and_chunks_over_min_token_len list of dictionaries to disk
 chunks_and_embeddings_df = pd.DataFrame(pages_and_chunks_over_min_token_len)
+print(chunks_and_embeddings_df.sample(5))
 chunks_and_embeddings_df.to_csv("chunks_and_embeddings.csv", escapechar='\\', index=False)
 
 
