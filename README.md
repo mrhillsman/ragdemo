@@ -14,4 +14,5 @@
 - chat interface will be available at localhost:8000
 
 
-![Screenshot from 2024-04-05 17-33-24](https://github.com/mrhillsman/ragdemo/assets/3989695/48631544-15cd-4e90-ad67-6e933ed6a6c6)
+
+![Screenshot from 2024-04-04 10-04-44](https://github.com/mrhillsman/ragdemo/assets/3989695/05d5ea80-fae9-42f4-99e9-3a5203b2c761)
